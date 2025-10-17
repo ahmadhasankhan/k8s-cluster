@@ -1,0 +1,19 @@
+#cloud-config
+package_update: true
+packages:
+  - curl
+  - apt-transport-https
+  - ca-certificates
+  - containerd
+  - kubelet
+  - kubeadm
+  - kubectl
+
+runcmd:
+  - swapoff -a
+  - sed -ri '/\sswap\s/s/^#?/#/' /etc/fstab
+  - mkdir -p /etc/containerd
+  - containerd config default > /etc/containerd/config.toml
+  - sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+  - systemctl restart containerd
+  - systemctl enable containerd

@@ -1,0 +1,24 @@
+#cloud-config
+package_update: true
+packages:
+  - curl
+  - apt-transport-https
+  - ca-certificates
+  - containerd
+  - kubelet
+  - kubeadm
+  - kubectl
+
+runcmd:
+  - swapoff -a
+  - sed -ri '/\sswap\s/s/^#?/#/' /etc/fstab
+  - mkdir -p /etc/containerd
+  - containerd config default > /etc/containerd/config.toml
+  - sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+  - systemctl restart containerd
+  - systemctl enable containerd
+  - kubeadm init --pod-network-cidr=10.244.0.0/16
+  - mkdir -p /home/ubuntu/.kube
+  - cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+  - chown ubuntu:ubuntu /home/ubuntu/.kube/config
+  - echo "export KUBECONFIG=/home/ubuntu/.kube/config" >> /home/ubuntu/.bashrc
